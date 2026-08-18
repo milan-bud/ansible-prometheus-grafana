@@ -1,0 +1,24 @@
+---
+- name: Apply Common Setup
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: Deploy Node Exporters
+  hosts: node_exporter_nodes
+  become: true
+  roles:
+    - node_exporter
+
+- name: Deploy Prometheus Server
+  hosts: prometheus_server
+  become: true
+  roles:
+    - prometheus
+
+- name: Deploy Grafana
+  hosts: grafana_server
+  become: true
+  roles:
+    - grafana
