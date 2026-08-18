@@ -2,13 +2,36 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: "prometheus"
-    static_configs:
-      - targets: ["localhost:9090"]
-
   - job_name: "node_exporter"
     static_configs:
       - targets:
 {% for host in groups['node_exporter_nodes'] %}
-          - "{{ hostvars[host]['ansible_host'] }}:9100"
+        - "{{ hostvars[host]['ansible_host'] }}:9100"
+{% endfor %}
+
+  - job_name: "postgres"
+    static_configs:
+      - targets:
+{% for host in groups['node_exporter_nodes'] %}
+{% if 'postgres' in hostvars[host].get('exporters', []) %}
+        - "{{ hostvars[host]['ansible_host'] }}:9187"
+{% endif %}
+{% endfor %}
+
+  - job_name: "redis"
+    static_configs:
+      - targets:
+{% for host in groups['node_exporter_nodes'] %}
+{% if 'redis' in hostvars[host].get('exporters', []) %}
+        - "{{ hostvars[host]['ansible_host'] }}:9121"
+{% endif %}
+{% endfor %}
+
+  - job_name: "rabbitmq"
+    static_configs:
+      - targets:
+{% for host in groups['node_exporter_nodes'] %}
+{% if 'rabbitmq' in hostvars[host].get('exporters', []) %}
+        - "{{ hostvars[host]['ansible_host'] }}:15692"
+{% endif %}
 {% endfor %}

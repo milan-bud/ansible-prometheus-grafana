@@ -36,8 +36,8 @@
 
 - name: Deploy Prometheus configuration file
   ansible.builtin.template:
-    src: prometheus.yml.j2
-    dest: /etc/prometheus/prometheus.yml
+    src: prometheus.yaml.j2
+    dest: /etc/prometheus/prometheus.yaml
     owner: prometheus
     group: prometheus
     mode: '0644'
@@ -57,7 +57,7 @@
       Group=prometheus
       Type=simple
       ExecStart=/usr/local/bin/prometheus \
-        --config.file=/etc/prometheus/prometheus.yml \
+        --config.file=/etc/prometheus/prometheus.yaml \
         --storage.tsdb.path=/var/lib/prometheus/
 
       [Install]

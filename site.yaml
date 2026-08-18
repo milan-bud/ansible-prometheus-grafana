@@ -22,3 +22,15 @@
   become: true
   roles:
     - grafana
+
+- name: Deploy Target Node Exporters
+  hosts: node_exporter_nodes
+  become: true
+  roles:
+    - role: node_exporter
+    - role: postgres_exporter
+      when: "'postgres' in (exporters | default([]))"
+    - role: redis_exporter
+      when: "'redis' in (exporters | default([]))"
+    - role: rabbitmq_exporter
+      when: "'rabbitmq' in (exporters | default([]))"
