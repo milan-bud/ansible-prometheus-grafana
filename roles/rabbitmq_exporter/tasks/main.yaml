@@ -1,0 +1,12 @@
+---
+- name: Enable RabbitMQ native Prometheus plugin
+  community.rabbitmq.rabbitmq_plugin:
+    names: rabbitmq_prometheus
+    state: enabled
+  notify: Restart rabbitmq-server
+
+- name: Ensure rabbitmq-server is running
+  ansible.builtin.systemd:
+    name: rabbitmq-server
+    enabled: true
+    state: started
