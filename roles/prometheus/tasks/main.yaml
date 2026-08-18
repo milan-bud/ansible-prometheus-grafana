@@ -1,4 +1,10 @@
 ---
+- name: Check installed Prometheus version
+  ansible.builtin.command: /usr/local/bin/prometheus --version
+  register: prometheus_check
+  failed_when: false
+  changed_when: false
+
 - name: Create Prometheus directories
   ansible.builtin.file:
     path: "{{ item }}"
@@ -12,19 +18,21 @@
 
 - name: Download Prometheus
   ansible.builtin.get_url:
-    url: "https://github.com/prometheus/prometheus/releases/download/v2.54.1/prometheus-2.54.1.linux-amd64.tar.gz"
-    dest: "/tmp/prometheus.tar.gz"
+    url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/prometheus-{{ prometheus_version }}.tar.gz"
     mode: '0644'
+  when: prometheus_version not in (prometheus_check.stdout | default(''))
 
 - name: Extract Prometheus
   ansible.builtin.unarchive:
-    src: "/tmp/prometheus.tar.gz"
+    src: "/tmp/prometheus-{{ prometheus_version }}.tar.gz"
     dest: "/tmp"
     remote_src: true
+  when: prometheus_version not in (prometheus_check.stdout | default(''))
 
 - name: Copy Prometheus binaries
   ansible.builtin.copy:
-    src: "/tmp/prometheus-2.54.1.linux-amd64/{{ item }}"
+    src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     owner: prometheus
     group: prometheus
@@ -33,6 +41,8 @@
   loop:
     - prometheus
     - promtool
+  when: prometheus_version not in (prometheus_check.stdout | default(''))
+  notify: Restart prometheus
 
 - name: Deploy Prometheus configuration file
   ansible.builtin.template:
@@ -41,6 +51,7 @@
     owner: prometheus
     group: prometheus
     mode: '0644'
+    validate: '/usr/local/bin/promtool check config %s'
   notify: Restart prometheus
 
 - name: Create Prometheus systemd service

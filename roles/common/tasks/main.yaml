@@ -5,7 +5,7 @@
     state: present
     system: true
 
-- name: Create prometheus system user
+- name: Create prometheus system user with nologin shell
   ansible.builtin.user:
     name: prometheus
     group: prometheus

@@ -1,22 +1,32 @@
 ---
+- name: Check installed postgres_exporter version
+  ansible.builtin.command: /usr/local/bin/postgres_exporter --version
+  register: postgres_exporter_check
+  failed_when: false
+  changed_when: false
+
 - name: Download postgres_exporter binary
   ansible.builtin.get_url:
-    url: "https://github.com/prometheus-community/postgres_exporter/releases/download/v0.20.1/postgres_exporter-0.20.1.linux-amd64.tar.gz"
-    dest: /tmp/postgres_exporter.tar.gz
+    url: "https://github.com/prometheus-community/postgres_exporter/releases/download/v{{ postgres_exporter_version }}/postgres_exporter-{{ postgres_exporter_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/postgres_exporter-{{ postgres_exporter_version }}.tar.gz"
     mode: '0644'
+  when: postgres_exporter_version not in (postgres_exporter_check.stdout | default(''))
 
 - name: Extract postgres_exporter archive
   ansible.builtin.unarchive:
-    src: /tmp/postgres_exporter.tar.gz
+    src: "/tmp/postgres_exporter-{{ postgres_exporter_version }}.tar.gz"
     dest: /tmp/
     remote_src: true
+  when: postgres_exporter_version not in (postgres_exporter_check.stdout | default(''))
 
 - name: Move postgres_exporter binary to /usr/local/bin
   ansible.builtin.copy:
-    src: /tmp/postgres_exporter-0.20.1.linux-amd64/postgres_exporter
+    src: "/tmp/postgres_exporter-{{ postgres_exporter_version }}.linux-amd64/postgres_exporter"
     dest: /usr/local/bin/postgres_exporter
     mode: '0755'
     remote_src: true
+  when: postgres_exporter_version not in (postgres_exporter_check.stdout | default(''))
+  notify: Restart postgres_exporter
 
 - name: Create systemd service for postgres_exporter
   ansible.builtin.copy:

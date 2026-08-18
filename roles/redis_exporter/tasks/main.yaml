@@ -1,22 +1,32 @@
 ---
-- name: Download redis_exporter binary
+- name: Check installed redis_exporter version
+  ansible.builtin.command: /usr/local/bin/redis_exporter --version
+  register: redis_exporter_check
+  failed_when: false
+  changed_when: false
+
+- name: Download redis_exporter archive
   ansible.builtin.get_url:
-    url: "https://github.com/oliver006/redis_exporter/releases/download/v1.87.0/redis_exporter-v1.87.0.linux-amd64.tar.gz"
-    dest: /tmp/redis_exporter.tar.gz
+    url: "https://github.com/oliver006/redis_exporter/releases/download/v{{ redis_exporter_version }}/redis_exporter-v{{ redis_exporter_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/redis_exporter-v{{ redis_exporter_version }}.tar.gz"
     mode: '0644'
+  when: redis_exporter_version not in (redis_exporter_check.stdout | default(''))
 
 - name: Extract redis_exporter archive
   ansible.builtin.unarchive:
-    src: /tmp/redis_exporter.tar.gz
+    src: "/tmp/redis_exporter-v{{ redis_exporter_version }}.tar.gz"
     dest: /tmp/
     remote_src: true
+  when: redis_exporter_version not in (redis_exporter_check.stdout | default(''))
 
 - name: Move redis_exporter binary to /usr/local/bin
   ansible.builtin.copy:
-    src: /tmp/redis_exporter-v1.87.0.linux-amd64/redis_exporter
+    src: "/tmp/redis_exporter-v{{ redis_exporter_version }}.linux-amd64/redis_exporter"
     dest: /usr/local/bin/redis_exporter
     mode: '0755'
     remote_src: true
+  when: redis_exporter_version not in (redis_exporter_check.stdout | default(''))
+  notify: Restart redis_exporter
 
 - name: Create systemd service for redis_exporter
   ansible.builtin.copy:

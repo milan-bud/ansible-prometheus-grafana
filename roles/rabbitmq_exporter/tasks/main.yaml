@@ -5,7 +5,7 @@
     state: enabled
   notify: Restart rabbitmq-server
 
-- name: Ensure rabbitmq-server is running
+- name: Ensure rabbitmq-server is enabled and started
   ansible.builtin.systemd:
     name: rabbitmq-server
     enabled: true
