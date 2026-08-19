@@ -41,6 +41,7 @@ This Ansible project automates the installation, configuration, and management o
     ├── rabbitmq_exporter/  # RabbitMQ metrics collector role
     ├── prometheus/         # Prometheus server role + config template
     └── grafana/            # Grafana server role
+```
 
 
 Configuration & What to Specify
